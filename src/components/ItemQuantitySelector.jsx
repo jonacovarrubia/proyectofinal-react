@@ -1,21 +1,11 @@
 import React from 'react';
 
-const ItemQuantitySelector = ({ quantity, setQuantity }) => {
-  const handleIncrease = () => {
-    setQuantity(quantity + 1);
-  };
-
-  const handleDecrease = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
-
+const ItemQuantitySelector = ({ quantity, onDecrease, onIncrease }) => {
   return (
     <div>
-      <button onClick={handleDecrease}>-</button>
+      <button onClick={onDecrease}>-</button>
       <span>{quantity}</span>
-      <button onClick={handleIncrease}>+</button>
+      <button onClick={onIncrease}>+</button>
     </div>
   );
 };

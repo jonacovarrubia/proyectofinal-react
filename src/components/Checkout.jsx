@@ -1,41 +1,48 @@
-import React, { useContext } from 'react';
-import { CartContext } from '../components/CartContext'; 
+import React, { useEffect, useState } from 'react';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
 
-const Checkout = () => {
-  const { cartItems, clearCart } = useContext(CartContext);
+const Checkout = ({ cartItems }) => {
+  const [userName, setUserName] = useState('');
+  const [total, setTotal] = useState(0);
 
-  // Calcula el precio total de todos los productos en el carrito
-  const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  useEffect(() => {
+    let cartTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    setTotal(cartTotal);
+  }, [cartItems]);
 
-  // Función que se ejecuta al realizar el pedido
-  const handleCheckout = () => {
-    // Simulación de procesamiento del pago y envío de la orden
-    setTimeout(() => {
-      alert('¡Gracias por su compra! Su pedido ha sido procesado y será enviado pronto.');
-      clearCart(); // Vacía el carrito después de procesar el pedido
-    }, 2000); // tiempo de espera de 2 segundos antes de procesar el pedido
+  const handleOrderSubmit = async () => {
+    try {
+      console.log('Realizando pedido...');
+      console.log('Usuario:', userName); 
+      const db = getFirestore();
+      const ordersCollection = collection(db, 'pedidos');
+      const newOrderRef = await addDoc(ordersCollection, {
+        usuario: userName,
+        total: total,
+        productos: cartItems,
+        fecha: new Date()
+      });
+      console.log('Pedido realizado con éxito! ID:', newOrderRef.id);
+      alert('Pedido realizado con éxito!');
+    } catch (error) {
+      console.error('Error al agregar el pedido:', error);
+    }
   };
 
   return (
-    <div>
-      <h2>Checkout</h2>
-      {cartItems.length === 0 ? (
-        <p>No hay productos en el carrito.</p>
-      ) : (
-        <>
-          <ul>
-            {cartItems.map((item) => (
-              <li key={item.id}>
-                <span>{item.name}</span>
-                <span>{item.quantity}</span>
-                <span>{item.price}</span>
-              </li>
-            ))}
-          </ul>
-          <p>Total: {totalPrice}</p>
-          <button onClick={handleCheckout}>Realizar pedido</button>
-        </>
-      )}
+    <div className="checkout">
+      <div className="container">
+        <h3>Resumen del Pedido:</h3>
+        <label htmlFor="userName">Nombre de usuario:</label>
+        <input
+          type="text"
+          id="userName"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+        />
+        <p>Total: ${total}</p>
+        <button onClick={handleOrderSubmit}>Realizar pedido</button>
+      </div>
     </div>
   );
 };

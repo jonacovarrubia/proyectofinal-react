@@ -1,41 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import ProductList from './ProductList';
+import React, { useEffect, useState } from 'react';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
-const ItemListContainer = ({ category }) => {
+const ItemListContainer = ({ greeting, onAddToCart, selectedItem }) => {
   const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Simulación de obtención de productos de la base de datos
   useEffect(() => {
-    // Lógica para obtener los productos de la base de datos o de una API
-    const fetchProducts = async () => {
-      // Simulación de una llamada a una API o consulta a una base de datos
-      const response = await fetchProductsFromDatabase(category);
-      setProducts(response);
+    const fetchData = async () => {
+      try {
+        const db = getFirestore();
+        const productsCollection = collection(db, 'productos');
+        const querySnapshot = await getDocs(productsCollection);
+        const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setProducts(productsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
     };
 
-    fetchProducts();
-  }, [category]);
+    fetchData();
+  }, [selectedItem]); 
+  useEffect(() => {
+    if (selectedItem) {
+      const selectedProduct = products.find(product => product.id === parseInt(selectedItem));
+      setSelectedProduct(selectedProduct);
+    } else {
+      setSelectedProduct(null);
+    }
+  }, [selectedItem, products]); 
 
-  // Función simulada para obtener productos de la base de datos
-  const fetchProductsFromDatabase = async (category) => {
-    // Simulación de una lista de productos de la base de datos
-    const databaseProducts = [
-      { id: 1, name: 'Producto 1', price: 250000, category: 'Star Wars' },
-      { id: 2, name: 'Producto 2', price: 300000, category: 'Star Wars' },
-      { id: 3, name: 'Producto 3', price: 350000, category: 'Star Wars' },
-      { id: 4, name: 'Producto 4', price: 400000, category: 'Star Wars' },
-    ];
-
-    // Filtrar los productos por categoría
-    const filteredProducts = databaseProducts.filter(product => product.category === category);
-
-    return filteredProducts;
+  const addToCart = (product) => {
+    console.log('Agregado al carrito:', product);
+    onAddToCart(product);
   };
 
   return (
-    <div>
-      <h2>{`Productos de la categoría ${category}`}</h2>
-      <ProductList products={products} />
+    <div className="container mt-4">
+      <h2 className="text-center">Productos Destacados</h2>
+      <p className="lead text-center">{greeting}</p>
+      <div className="row">
+        {selectedProduct ? (
+          <div key={selectedProduct.id} className="col-md-3 col-sm-6 mb-4">
+            <div className="card">
+              <img src={selectedProduct.image} className="card-img-top" alt={selectedProduct.name} />
+              <div className="card-body">
+                <h5 className="card-title">{selectedProduct.name}</h5>
+                <p className="card-text">{selectedProduct.description}</p>
+                <p className="card-text">Precio: ${selectedProduct.price}</p>
+                <button onClick={() => addToCart(selectedProduct)} className="btn btn-primary">Agregar al carrito</button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          products.map(product => (
+            <div key={product.id} className="col-md-3 col-sm-6 mb-4">
+              <div className="card">
+                <img src={product.image} className="card-img-top" alt={product.name} />
+                <div className="card-body">
+                  <h5 className="card-title">{product.name}</h5>
+                  <p className="card-text">{product.description}</p>
+                  <p className="card-text">Precio: ${product.price}</p>
+                  <button onClick={() => addToCart(product)} className="btn btn-primary">Agregar al carrito</button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };

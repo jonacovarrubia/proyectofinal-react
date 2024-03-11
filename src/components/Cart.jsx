@@ -1,51 +1,28 @@
-import React, { useContext } from 'react';
-import { CartContext } from './CartContext';
+import React from 'react';
+import ItemQuantitySelector from './ItemQuantitySelector';
 
-const Cart = () => {
-  const { cart, updateQuantity, removeFromCart } = useContext(CartContext);
-
-  const handleIncrease = (id) => {
-    const updatedCart = cart.map(item => {
-      if (item.id === id) {
-        return { ...item, quantity: item.quantity + 1 };
-      }
-      return item;
-    });
-    updateQuantity(id, updatedCart.find(item => item.id === id).quantity);
-  };
-
-  const handleDecrease = (id) => {
-    const updatedCart = cart.map(item => {
-      if (item.id === id && item.quantity > 1) {
-        return { ...item, quantity: item.quantity - 1 };
-      }
-      return item;
-    });
-    updateQuantity(id, updatedCart.find(item => item.id === id).quantity);
-  };
-
-  const handleRemove = (id) => {
-    removeFromCart(id);
-  };
-
-  const handleCheckout = () => {
-    console.log('Procesando pago...');
-    console.log('Orden completada.');
-  };
-
+const Cart = ({ cartItems, onRemoveItem, onIncreaseQuantity, onDecreaseQuantity }) => {
   return (
-    <div>
-      <h2>Carrito de Compras</h2>
-      {cart.map(item => (
-        <div key={item.id}>
-          <p>{item.name}</p>
-          <p>Cantidad: {item.quantity}</p>
-          <button onClick={() => handleIncrease(item.id)}>+</button>
-          <button onClick={() => handleDecrease(item.id)}>-</button>
-          <button onClick={() => handleRemove(item.id)}>Eliminar</button>
-        </div>
-      ))}
-      <button onClick={handleCheckout}>Procesar Pago</button>
+    <div className="cart-container">
+      <div className="cart-header">
+        <h2>Cart</h2>
+      </div>
+      <ul className="cart-items">
+        {cartItems.map((item, index) => (
+          <li key={index} className="cart-item">
+            <img src={item.image} alt={item.name} />
+            <div className="item-details">
+              <h3>{item.name}</h3>
+              <p>Price: ${item.price}</p>
+              <ItemQuantitySelector
+                quantity={item.quantity}
+                onDecrease={item.quantity > 1 ? () => onDecreaseQuantity(item) : () => onRemoveItem(item)}
+                onIncrease={() => onIncreaseQuantity(item)}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

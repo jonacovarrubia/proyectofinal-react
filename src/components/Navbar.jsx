@@ -1,37 +1,48 @@
-import React from 'react';
-import CartWidget from './CartWidget'; 
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import CartWidget from './CartWidget';
+import Cart from './Cart';
+import './styles.css';
 
-const Navbar = () => {
+const Navbar = ({ cartItemCount, onItemClick }) => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const handleCartClick = () => {
+    setIsCartOpen(!isCartOpen);
+  };
+
+  const handleItemClick = (itemId) => {
+    onItemClick(itemId); 
+  };
+
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container">
-        <a className="navbar-brand" href="#">Star Wars Shop</a>
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <Link className="navbar-brand" to="/">Star Wars Shop</Link>
+        <button className="navbar-toggler" type="button" onClick={handleCartClick}>
           <span className="navbar-toggler-icon"></span>
         </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto">
+        <div className={`collapse navbar-collapse ${isCartOpen ? 'show' : ''}`} id="navbarNav">
+          <ul className="navbar-nav">
             <li className="nav-item">
-              <a className="nav-link" href="#">Yoda</a>
+              <Link className="nav-link" to="/item/1" onClick={() => handleItemClick(1)}>Yoda</Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="#">Anakin</a>
+              <Link className="nav-link" to="/item/2" onClick={() => handleItemClick(2)}>Anakin</Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="#">Luke</a>
+              <Link className="nav-link" to="/item/3" onClick={() => handleItemClick(3)}>Luke</Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="#">Darth Vader</a>
-            </li>
-            {/* componente CartWidget */}
-            <li className="nav-item">
-              <CartWidget />
+              <Link className="nav-link" to="/item/4" onClick={() => handleItemClick(4)}>Darth Vader</Link>
             </li>
           </ul>
+          <CartWidget cartItemCount={cartItemCount} />
         </div>
       </div>
+      {isCartOpen && <Cart />}
     </nav>
   );
-}
+};
 
 export default Navbar;

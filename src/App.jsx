@@ -1,47 +1,69 @@
-import React from 'react';
-import './components/styles.css';
-import { firestore } from './firebase/firebase';
-import AddItemButton from './components/AddItemButton';
-import Brief from './components/Brief';
-import Cart from './components/Cart';
-import { CartContext } from './components/CartContext';
-import CartWidget from './components/CartWidget';
-import Checkout from './components/Checkout';
-import Description from './components/Description';
-import Home from './components/Home';
-import ItemDetail from './components/ItemDetail';
-import ItemDetailContainer from './components/ItemDetailContainer';
-import ItemListContainer from './components/ItemListContainer';
-import ItemQuantitySelector from './components/ItemQuantitySelector';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
-import ProductCard from './components/ProductCard';
-import ProductDetail from './components/ProductDetail';
-import ProductList from './components/ProductList';
-import './App.css';
+import ItemListContainer from './components/ItemListContainer';
+import CartWidget from './components/CartWidget';
+import Cart from './components/Cart';
+import Checkout from './components/Checkout';
+import db from './firebase/firebase';
 
-function App() {
-  const [count, setCount] = React.useState(0);
+const App = () => {
+  const [cartItems, setCartItems] = useState([]);
+  const [userName, setUserName] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null); 
+
+  const addToCart = (product) => {
+    const existingProductIndex = cartItems.findIndex(item => item.id === product.id);
+
+    if (existingProductIndex !== -1) {
+      const updatedCartItems = [...cartItems];
+      updatedCartItems[existingProductIndex].quantity += 1;
+      setCartItems(updatedCartItems);
+    } else {
+      setCartItems([...cartItems, { ...product, quantity: 1 }]);
+    }
+  };
+
+  const onRemoveItem = (itemToRemove) => {
+    const updatedCartItems = cartItems.filter(item => item.id !== itemToRemove.id);
+    setCartItems(updatedCartItems);
+  };
+
+  const onIncreaseQuantity = (itemToIncrease) => {
+    const updatedCartItems = cartItems.map(item => {
+      if (item.id === itemToIncrease.id) {
+        return { ...item, quantity: item.quantity + 1 };
+      }
+      return item;
+    });
+    setCartItems(updatedCartItems);
+  };
+
+  const onDecreaseQuantity = (itemToDecrease) => {
+    const updatedCartItems = cartItems.map(item => {
+      if (item.id === itemToDecrease.id) {
+        return { ...item, quantity: item.quantity - 1 };
+      }
+      return item;
+    }).filter(item => item.quantity > 0); 
+
+    setCartItems(updatedCartItems);
+  };
+
+  const handleItemClick = (itemId) => {
+    setSelectedItem(itemId); 
+  };
 
   return (
-    <>
-    <Navbar />
-      <Home />
-      <ProductCard />
-      <ProductDetail />
-      <ProductList />
-      <ItemDetail />
-      <ItemListContainer />
-      <ItemDetailContainer />
-      <ItemQuantitySelector />
-      <Brief />
-      <Description />
-      <Cart />
-      <CartWidget />
-      <Checkout />
-      <AddItemButton />   
-  
-    </>
+    <div>
+      <Navbar cartItemCount={cartItems.reduce((total, item) => total + item.quantity, 0)} onItemClick={handleItemClick} />
+      <CartWidget cartItemCount={cartItems.length} />
+      <div className="container">
+        <ItemListContainer db={db} onAddToCart={addToCart} selectedItem={selectedItem} /> 
+        <Cart cartItems={cartItems} onRemoveItem={onRemoveItem} onIncreaseQuantity={onIncreaseQuantity} onDecreaseQuantity={onDecreaseQuantity} />
+        <Checkout cartItems={cartItems} userName={userName} />
+      </div>
+    </div>
   );
-}
+};
 
 export default App;
